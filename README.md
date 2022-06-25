@@ -8,6 +8,8 @@ Press the plus (+) key to increase or the minus (-) key to decrease the playback
 
 And yes, watching some videos at 2.5x and even at 3x speed is a viable thing to do. Your brain will adjust quickly to the higher speed and you'll still get all the information. Just that much faster. 
 
+When watching educational videos, watching at 3x speed will ***not only make you learn 3x faster but also help you retain more of the new information*** because your brain is forced to pay more attention. 
+
 Also, in some videos it can be helpful to speed up during certain sections and then to slow down when needed. Manipulating the video speed using keyboard keys is much faster and much more convenient than trying to do with the mouse. 
 
 Pressing the multiply (*) key will set the speed back to normal. Hovering the mouse over the video will briefly display the current playback speed.
