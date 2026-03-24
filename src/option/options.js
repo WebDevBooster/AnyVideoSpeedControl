@@ -1,96 +1,94 @@
-var a = {
-    speedStep: 0.25,
-    slowerKeyCode: '109,189',
-    fasterKeyCode: '107,187',
-    resetKeyCode: '106',
-    displayOption: 'FadeInFadeOut',
-    allowMouseWheel: true,
-    rememberSpeed: false
+const DEFAULTS = {
+  speedStep: 0.25,
+  slowerKeyCode: '109,189',
+  fasterKeyCode: '107,187',
+  resetKeyCode: '106',
+  displayOption: 'FadeInFadeOut',
+  allowMouseWheel: true,
+  rememberSpeed: false
 };
 
-function b(o) {
-    var p = String.fromCharCode(o.keyCode);
-    if (!/[\d\.]$/.test(p) || !/^\d+(\.\d*)?$/.test(o.target.value + p)) {
-        o.preventDefault();
-        o.stopPropagation();
-    }
-};
+function loadSettings() {
+  chrome.storage.sync.get(DEFAULTS, (settings) => {
+    document.getElementById('speedStep').value = Number(settings.speedStep).toFixed(2);
+    document.getElementById('slowerKeyInput').value = settings.slowerKeyCode;
+    document.getElementById('fasterKeyInput').value = settings.fasterKeyCode;
+    document.getElementById('resetKeyInput').value = settings.resetKeyCode;
+    document.getElementById('allowMouseWheel').checked = settings.allowMouseWheel;
+    document.getElementById('rememberSpeed').checked = settings.rememberSpeed;
 
-function d() {
-    var o = document.getElementById('speedStep').value;
-    var p = document.getElementById('slowerKeyInput').value;
-    var q = document.getElementById('fasterKeyInput').value;
-    var r = document.getElementById('resetKeyInput').value;
-    var s = document.getElementById('allowMouseWheel').checked;
-    var t = document.getElementById('rememberSpeed').checked;
-    var u;
-    var v = document.getElementsByName('displayOption');
-    for (var w = 0, length = v.length; w < length; w++) {
-        if (v[w].checked) {
-            u = v[w].value;
-            break;
+    const radioEl = document.getElementById(settings.displayOption);
+    if (radioEl) radioEl.checked = true;
+  });
+}
+
+function saveSettings() {
+  const displayOption = document.querySelector('input[name="displayOption"]:checked');
+  const settings = {
+    speedStep: parseFloat(document.getElementById('speedStep').value) || DEFAULTS.speedStep,
+    slowerKeyCode: document.getElementById('slowerKeyInput').value,
+    fasterKeyCode: document.getElementById('fasterKeyInput').value,
+    resetKeyCode: document.getElementById('resetKeyInput').value,
+    displayOption: displayOption ? displayOption.value : DEFAULTS.displayOption,
+    allowMouseWheel: document.getElementById('allowMouseWheel').checked,
+    rememberSpeed: document.getElementById('rememberSpeed').checked
+  };
+
+  chrome.storage.sync.set(settings, () => {
+    showStatus('Options saved');
+  });
+}
+
+function restoreDefaults() {
+  chrome.storage.sync.set(DEFAULTS, () => {
+    loadSettings();
+    showStatus('Default options restored');
+  });
+}
+
+function showStatus(message) {
+  const status = document.getElementById('status');
+  status.textContent = message;
+  setTimeout(() => { status.textContent = ''; }, 1500);
+}
+
+function populateKeySelects() {
+  fetch('keycodedict.json')
+    .then(response => response.json())
+    .then(data => {
+      const selects = ['fasterKeyInput', 'slowerKeyInput', 'resetKeyInput'];
+      for (const id of selects) {
+        const select = document.getElementById(id);
+        select.innerHTML = '';
+        for (const entry of data.keycodedict) {
+          const option = document.createElement('option');
+          option.value = entry.keycode;
+          option.textContent = entry.input;
+          select.appendChild(option);
         }
-    }
-    o = isNaN(o) ? a.speedStep : Number(o);
-    chrome.storage.sync.set({
-        speedStep: o,
-        slowerKeyCode: p,
-        fasterKeyCode: q,
-        resetKeyCode: r,
-        displayOption: u,
-        allowMouseWheel: s,
-        rememberSpeed: t
-    }, function () {
-        var M = document.getElementById('status');
-        M.textContent = 'Options saved';
-        setTimeout(function () {
-            M.textContent = '';
-        }, 1000);
+      }
+      // Load settings after selects are populated so values match
+      loadSettings();
     });
-};
+}
 
-function e() {
-    chrome.storage.sync.get(a, function (M) {
-        document.getElementById('speedStep').value = M.speedStep.toFixed(2);
-        document.getElementById('slowerKeyInput').value = M.slowerKeyCode;
-        document.getElementById('fasterKeyInput').value = M.fasterKeyCode;
-        document.getElementById('resetKeyInput').value = M.resetKeyCode;
-        document.getElementById(M.displayOption).checked = true;
-        document.getElementById('allowMouseWheel').checked = M.allowMouseWheel;
-        document.getElementById('rememberSpeed').checked = M.rememberSpeed;
-    });
-};
+function initTabs() {
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.tab-content');
 
-function f() {
-    chrome.storage.sync.set(a, function () {
-        e();
-        var M = document.getElementById('status');
-        M.textContent = 'Default options restored';
-        setTimeout(function () {
-            M.textContent = '';
-        }, 1000);
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab).classList.add('active');
     });
-};
-document.addEventListener('DOMContentLoaded',
-    function () {
-        e();
-        document.getElementById('save').addEventListener('click', d);
-        document.getElementById('restore').addEventListener('click', f);
-        document.getElementById('speedStep').addEventListener('keypress', b);
-    }
-);
-$(document).ready(function () {
-    var o = $('#fasterKeyInput');
-    var p = $('#slowerKeyInput');
-    var q = $('#resetKeyInput');
-    $.getJSON('keycodedict.json', function (M) {
-        o.html('');
-        p.html('');
-        q.html('');
-        $.each(M.keycodedict, function (R, S) {
-            o.append(new Option(S.input, S.keycode));
-            p.append(new Option(S.input, S.keycode));
-            q.append(new Option(S.input, S.keycode));
-        })
-    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initTabs();
+  populateKeySelects();
+  document.getElementById('save').addEventListener('click', saveSettings);
+  document.getElementById('restore').addEventListener('click', restoreDefaults);
 });
