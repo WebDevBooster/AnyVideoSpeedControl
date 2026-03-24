@@ -2,9 +2,9 @@
   const DEFAULT_SETTINGS = {
     speed: 1.0,
     speedStep: 0.25,
-    slowerKeyCode: '109,189',
-    fasterKeyCode: '107,187',
-    resetKeyCode: '106',
+    slowerKeyCode: 'NumpadSubtract,Minus',
+    fasterKeyCode: 'NumpadAdd,Equal',
+    resetKeyCode: 'NumpadMultiply',
     displayOption: 'FadeInFadeOut',
     allowMouseWheel: true,
     rememberSpeed: false
@@ -13,12 +13,8 @@
   let settings = { ...DEFAULT_SETTINGS };
   const controllers = new WeakMap();
 
-  function matchesKeyCode(keyCodes, keyCode) {
-    return keyCodes.split(',').some(code => parseInt(code, 10) === keyCode);
-  }
-
-  function setVideoSpeed(video, speed) {
-    video.playbackRate = speed;
+  function matchesKey(keyCodes, code) {
+    return keyCodes.split(',').includes(code);
   }
 
   function adjustSpeed(action) {
@@ -26,16 +22,12 @@
     for (const video of videos) {
       if (video.classList.contains('vc-cancelled')) continue;
 
-      let newSpeed;
       if (action === 'faster') {
-        newSpeed = Math.min(video.playbackRate + settings.speedStep, 16);
+        video.playbackRate = Math.min(video.playbackRate + settings.speedStep, 16);
       } else if (action === 'slower') {
-        newSpeed = Math.max(video.playbackRate - settings.speedStep, 0.05);
+        video.playbackRate = Math.max(video.playbackRate - settings.speedStep, 0.05);
       } else if (action === 'reset') {
-        newSpeed = 1.0;
-      }
-      if (newSpeed !== undefined) {
-        setVideoSpeed(video, newSpeed);
+        video.playbackRate = 1.0;
       }
     }
 
@@ -197,12 +189,11 @@
           return;
         }
 
-        const keyCode = e.which || e.keyCode;
-        if (matchesKeyCode(settings.fasterKeyCode, keyCode)) {
+        if (matchesKey(settings.fasterKeyCode, e.code)) {
           adjustSpeed('faster');
-        } else if (matchesKeyCode(settings.slowerKeyCode, keyCode)) {
+        } else if (matchesKey(settings.slowerKeyCode, e.code)) {
           adjustSpeed('slower');
-        } else if (matchesKeyCode(settings.resetKeyCode, keyCode)) {
+        } else if (matchesKey(settings.resetKeyCode, e.code)) {
           adjustSpeed('reset');
         }
       }, true);

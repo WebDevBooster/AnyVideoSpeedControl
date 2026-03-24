@@ -1,164 +1,59 @@
 {
-	"keycodedict": [
-		{
-			"input": "0",
-			"keycode": "48"
-		}, {
-			"input": "1",
-			"keycode": "49"
-		}, {
-			"input": "2",
-			"keycode": "50"
-		}, {
-			"input": "3",
-			"keycode": "51"
-		}, {
-			"input": "4",
-			"keycode": "52"
-		}, {
-			"input": "5",
-			"keycode": "53"
-		}, {
-			"input": "6",
-			"keycode": "54"
-		}, {
-			"input": "7",
-			"keycode": "55"
-		}, {
-			"input": "8",
-			"keycode": "56"
-		}, {
-			"input": "9",
-			"keycode": "57"
-		}, {
-			"input": "a",
-			"keycode": "65"
-		}, {
-			"input": "b",
-			"keycode": "66"
-		}, {
-			"input": "c",
-			"keycode": "67"
-		}, {
-			"input": "d",
-			"keycode": "68"
-		}, {
-			"input": "e",
-			"keycode": "69"
-		}, {
-			"input": "f",
-			"keycode": "70"
-		}, {
-			"input": "g",
-			"keycode": "71"
-		}, {
-			"input": "h",
-			"keycode": "72"
-		}, {
-			"input": "i",
-			"keycode": "73"
-		}, {
-			"input": "j",
-			"keycode": "74"
-		}, {
-			"input": "k",
-			"keycode": "75"
-		}, {
-			"input": "l",
-			"keycode": "76"
-		}, {
-			"input": "m",
-			"keycode": "77"
-		}, {
-			"input": "n",
-			"keycode": "78"
-		}, {
-			"input": "o",
-			"keycode": "79"
-		}, {
-			"input": "p",
-			"keycode": "80"
-		}, {
-			"input": "q",
-			"keycode": "81"
-		}, {
-			"input": "r",
-			"keycode": "82"
-		}, {
-			"input": "s",
-			"keycode": "83"
-		}, {
-			"input": "t",
-			"keycode": "84"
-		}, {
-			"input": "u",
-			"keycode": "85"
-		}, {
-			"input": "v",
-			"keycode": "86"
-		}, {
-			"input": "w",
-			"keycode": "87"
-		}, {
-			"input": "x",
-			"keycode": "88"
-		}, {
-			"input": "y",
-			"keycode": "89"
-		}, {
-			"input": "z",
-			"keycode": "90"
-		}, {
-			"input": "numpad 0",
-			"keycode": "96"
-		}, {
-			"input": "numpad 1",
-			"keycode": "97"
-		}, {
-			"input": "numpad 2",
-			"keycode": "98"
-		}, {
-			"input": "numpad 3",
-			"keycode": "99"
-		}, {
-			"input": "numpad 4",
-			"keycode": "100"
-		}, {
-			"input": "numpad 5",
-			"keycode": "101"
-		}, {
-			"input": "numpad 6",
-			"keycode": "102"
-		}, {
-			"input": "numpad 7",
-			"keycode": "103"
-		}, {
-			"input": "numpad 8",
-			"keycode": "104"
-		}, {
-			"input": "numpad 9",
-			"keycode": "105"
-		}, {
-			"input": "Up Arrow",
-			"keycode": "38"
-		}, {
-			"input": "Down Arrow",
-			"keycode": "40"
-		}, {
-			"input": "multiply",
-			"keycode": "106"
-		}, {
-			"input": "add",
-			"keycode": "107,187"
-		}, {
-			"input": "subtract",
-			"keycode": "109,189"
-		}, {
-			"input": "divide",
-			"keycode": "111"
-		}, {
-			"input": "#",
-			"keycode": "35"
-		}
-	]
+  "keys": [
+    { "label": "0", "code": "Digit0" },
+    { "label": "1", "code": "Digit1" },
+    { "label": "2", "code": "Digit2" },
+    { "label": "3", "code": "Digit3" },
+    { "label": "4", "code": "Digit4" },
+    { "label": "5", "code": "Digit5" },
+    { "label": "6", "code": "Digit6" },
+    { "label": "7", "code": "Digit7" },
+    { "label": "8", "code": "Digit8" },
+    { "label": "9", "code": "Digit9" },
+    { "label": "a", "code": "KeyA" },
+    { "label": "b", "code": "KeyB" },
+    { "label": "c", "code": "KeyC" },
+    { "label": "d", "code": "KeyD" },
+    { "label": "e", "code": "KeyE" },
+    { "label": "f", "code": "KeyF" },
+    { "label": "g", "code": "KeyG" },
+    { "label": "h", "code": "KeyH" },
+    { "label": "i", "code": "KeyI" },
+    { "label": "j", "code": "KeyJ" },
+    { "label": "k", "code": "KeyK" },
+    { "label": "l", "code": "KeyL" },
+    { "label": "m", "code": "KeyM" },
+    { "label": "n", "code": "KeyN" },
+    { "label": "o", "code": "KeyO" },
+    { "label": "p", "code": "KeyP" },
+    { "label": "q", "code": "KeyQ" },
+    { "label": "r", "code": "KeyR" },
+    { "label": "s", "code": "KeyS" },
+    { "label": "t", "code": "KeyT" },
+    { "label": "u", "code": "KeyU" },
+    { "label": "v", "code": "KeyV" },
+    { "label": "w", "code": "KeyW" },
+    { "label": "x", "code": "KeyX" },
+    { "label": "y", "code": "KeyY" },
+    { "label": "z", "code": "KeyZ" },
+    { "label": "Numpad 0", "code": "Numpad0" },
+    { "label": "Numpad 1", "code": "Numpad1" },
+    { "label": "Numpad 2", "code": "Numpad2" },
+    { "label": "Numpad 3", "code": "Numpad3" },
+    { "label": "Numpad 4", "code": "Numpad4" },
+    { "label": "Numpad 5", "code": "Numpad5" },
+    { "label": "Numpad 6", "code": "Numpad6" },
+    { "label": "Numpad 7", "code": "Numpad7" },
+    { "label": "Numpad 8", "code": "Numpad8" },
+    { "label": "Numpad 9", "code": "Numpad9" },
+    { "label": "Up Arrow", "code": "ArrowUp" },
+    { "label": "Down Arrow", "code": "ArrowDown" },
+    { "label": "Numpad Multiply", "code": "NumpadMultiply" },
+    { "label": "Numpad Add / +", "code": "NumpadAdd" },
+    { "label": "Numpad Subtract / -", "code": "NumpadSubtract" },
+    { "label": "Numpad Divide", "code": "NumpadDivide" },
+    { "label": "Equal / +", "code": "Equal" },
+    { "label": "Minus / -", "code": "Minus" },
+    { "label": "#", "code": "Digit3,shift" }
+  ]
 }

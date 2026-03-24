@@ -1,8 +1,8 @@
 const DEFAULTS = {
   speedStep: 0.25,
-  slowerKeyCode: '109,189',
-  fasterKeyCode: '107,187',
-  resetKeyCode: '106',
+  slowerKeyCode: 'NumpadSubtract,Minus',
+  fasterKeyCode: 'NumpadAdd,Equal',
+  resetKeyCode: 'NumpadMultiply',
   displayOption: 'FadeInFadeOut',
   allowMouseWheel: true,
   rememberSpeed: false
@@ -60,14 +60,13 @@ function populateKeySelects() {
       for (const id of selects) {
         const select = document.getElementById(id);
         select.innerHTML = '';
-        for (const entry of data.keycodedict) {
+        for (const entry of data.keys) {
           const option = document.createElement('option');
-          option.value = entry.keycode;
-          option.textContent = entry.input;
+          option.value = entry.code;
+          option.textContent = entry.label;
           select.appendChild(option);
         }
       }
-      // Load settings after selects are populated so values match
       loadSettings();
     });
 }
