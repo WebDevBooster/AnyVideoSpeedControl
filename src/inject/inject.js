@@ -31,11 +31,12 @@
       }
     }
 
-    // Briefly show panel when speed changes
-    const panel = document.getElementById('avscPlayBackPanel');
-    if (panel && panel.style.display === 'none') {
-      panel.style.display = 'inline';
-      setTimeout(() => { panel.style.display = 'none'; }, 2000);
+    // Briefly show all panels when speed changes via keyboard
+    for (const panel of document.querySelectorAll('.avscPlayBackPanel')) {
+      if (panel.style.display === 'none') {
+        panel.style.display = 'inline';
+        setTimeout(() => { panel.style.display = 'none'; }, 2000);
+      }
     }
   }
 
@@ -47,21 +48,17 @@
     }
 
     const panel = document.createElement('div');
-    panel.id = 'avscPlayBackPanel';
     panel.className = 'avscPlayBackPanel';
 
     const speedBtn = document.createElement('button');
-    speedBtn.id = 'PlayBackRate';
-    speedBtn.className = 'avscBtn';
+    speedBtn.className = 'avscBtn avscBtn-speed';
     speedBtn.textContent = parseFloat(settings.speed).toFixed(2);
 
     const slowBtn = document.createElement('button');
-    slowBtn.id = 'SpeedDown';
     slowBtn.className = 'avscBtn avscBtn-left';
     slowBtn.textContent = '<<';
 
     const fastBtn = document.createElement('button');
-    fastBtn.id = 'SpeedUp';
     fastBtn.className = 'avscBtn avscBtn-right';
     fastBtn.textContent = '>>';
 
@@ -98,11 +95,13 @@
     }
 
     // Hover behavior for FadeInFadeOut
+    let hoverTimeout = null;
     if (parent) {
       parent.addEventListener('mousemove', () => {
         if (panel.style.display === 'none') {
           panel.style.display = 'inline';
-          setTimeout(() => {
+          clearTimeout(hoverTimeout);
+          hoverTimeout = setTimeout(() => {
             if (settings.displayOption === 'FadeInFadeOut') {
               panel.style.display = 'none';
             }
@@ -111,7 +110,8 @@
       });
 
       parent.addEventListener('mouseleave', () => {
-        if (settings.displayOption === 'FadeInFadeOut' && panel.className !== 'avscPlayBackPanelFullScreen') {
+        clearTimeout(hoverTimeout);
+        if (settings.displayOption === 'FadeInFadeOut' && !panel.classList.contains('avscPlayBackPanelFullScreen')) {
           panel.style.display = 'none';
         }
       });
@@ -171,7 +171,6 @@
             if (node.nodeName === 'VIDEO') {
               createController(node);
             }
-            // Check children of added nodes
             if (node.querySelectorAll) {
               for (const video of node.querySelectorAll('video')) {
                 createController(video);
@@ -208,14 +207,18 @@
         }, { passive: true });
       }
 
-      // Fullscreen change
+      // Fullscreen change — update the panel closest to the fullscreen element
       document.addEventListener('fullscreenchange', () => {
-        const panel = document.getElementById('avscPlayBackPanel');
-        if (!panel) return;
+        const panels = document.querySelectorAll('.avscPlayBackPanel');
         if (document.fullscreenElement) {
-          panel.className = 'avscPlayBackPanelFullScreen';
+          const fsPanel = document.fullscreenElement.querySelector('.avscPlayBackPanel');
+          if (fsPanel) {
+            fsPanel.classList.add('avscPlayBackPanelFullScreen');
+          }
         } else {
-          panel.className = 'avscPlayBackPanel';
+          for (const panel of panels) {
+            panel.classList.remove('avscPlayBackPanelFullScreen');
+          }
         }
       });
     });

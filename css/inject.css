@@ -10,14 +10,8 @@
     height: auto;
 }
 
-.avscPlayBackPanelFullScreen {
-    color: #CFCFCF;
-    font-size: 13px;
-    z-index: 999999;
-    position: absolute;
-    left: 35px;
+.avscPlayBackPanel.avscPlayBackPanelFullScreen {
     top: 1px;
-    display: inline;
     width: 90px;
     height: 20px;
 }
@@ -40,7 +34,7 @@
     outline: 0;
 }
 
-#PlayBackRate {
+.avscBtn-speed {
     float: right;
     color: #ffffff;
     vertical-align: middle;
@@ -54,6 +48,6 @@
     word-wrap: break-word;
 }
 
-#PlayBackRate::before {
+.avscBtn-speed::before {
     content: "Video Speed: ";
 }

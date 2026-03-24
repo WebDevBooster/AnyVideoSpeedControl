@@ -8,12 +8,23 @@ const DEFAULTS = {
   rememberSpeed: false
 };
 
+function getSelectedValues(select) {
+  return Array.from(select.selectedOptions).map(o => o.value).join(',');
+}
+
+function setSelectedValues(select, csv) {
+  const codes = csv.split(',');
+  for (const option of select.options) {
+    option.selected = codes.includes(option.value);
+  }
+}
+
 function loadSettings() {
   chrome.storage.sync.get(DEFAULTS, (settings) => {
     document.getElementById('speedStep').value = Number(settings.speedStep).toFixed(2);
-    document.getElementById('slowerKeyInput').value = settings.slowerKeyCode;
-    document.getElementById('fasterKeyInput').value = settings.fasterKeyCode;
-    document.getElementById('resetKeyInput').value = settings.resetKeyCode;
+    setSelectedValues(document.getElementById('slowerKeyInput'), settings.slowerKeyCode);
+    setSelectedValues(document.getElementById('fasterKeyInput'), settings.fasterKeyCode);
+    setSelectedValues(document.getElementById('resetKeyInput'), settings.resetKeyCode);
     document.getElementById('allowMouseWheel').checked = settings.allowMouseWheel;
     document.getElementById('rememberSpeed').checked = settings.rememberSpeed;
 
@@ -24,11 +35,20 @@ function loadSettings() {
 
 function saveSettings() {
   const displayOption = document.querySelector('input[name="displayOption"]:checked');
+  const slowerKeyCode = getSelectedValues(document.getElementById('slowerKeyInput'));
+  const fasterKeyCode = getSelectedValues(document.getElementById('fasterKeyInput'));
+  const resetKeyCode = getSelectedValues(document.getElementById('resetKeyInput'));
+
+  if (!slowerKeyCode || !fasterKeyCode || !resetKeyCode) {
+    showStatus('Please select at least one key for each action');
+    return;
+  }
+
   const settings = {
     speedStep: parseFloat(document.getElementById('speedStep').value) || DEFAULTS.speedStep,
-    slowerKeyCode: document.getElementById('slowerKeyInput').value,
-    fasterKeyCode: document.getElementById('fasterKeyInput').value,
-    resetKeyCode: document.getElementById('resetKeyInput').value,
+    slowerKeyCode,
+    fasterKeyCode,
+    resetKeyCode,
     displayOption: displayOption ? displayOption.value : DEFAULTS.displayOption,
     allowMouseWheel: document.getElementById('allowMouseWheel').checked,
     rememberSpeed: document.getElementById('rememberSpeed').checked

@@ -53,7 +53,6 @@
     { "label": "Numpad Subtract / -", "code": "NumpadSubtract" },
     { "label": "Numpad Divide", "code": "NumpadDivide" },
     { "label": "Equal / +", "code": "Equal" },
-    { "label": "Minus / -", "code": "Minus" },
-    { "label": "#", "code": "Digit3,shift" }
+    { "label": "Minus / -", "code": "Minus" }
   ]
 }
