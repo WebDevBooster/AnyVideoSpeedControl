@@ -1,1 +1,20 @@
-/.idea/
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node (if ever added)
+node_modules/
+package-lock.json
+
+# Build artifacts
+*.zip
+*.crx
+*.pem
