@@ -1,227 +1,239 @@
-chrome.extension.sendMessage({}, function (o) {
-    // Prevent the script from throwing `chrome.runtime.lastError`
-    // Got this from: https://stackoverflow.com/a/56787332/8270343
-    function ping() {
-        if (chrome.runtime.lastError) {
-            setTimeout(ping, 500);
-        } else {
-            var p = {
-                settings: {
-                    speed: 1.0,
-                    speedStep: 0.25,
-                    slowerKeyCode: '109,189',
-                    fasterKeyCode: '107,187',
-                    resetKeyCode: '106',
-                    displayOption: 'FadeInFadeOut',
-                    allowMouseWheel: true,
-                    rememberSpeed: false
-                }
-            };
-            var q;
-            chrome.storage.sync.get(p.settings, function (M) {
-                p.settings.speed = Number(M.speed);
-                p.settings.speedStep = Number(M.speedStep);
-                p.settings.slowerKeyCode = M.slowerKeyCode;
-                p.settings.fasterKeyCode = M.fasterKeyCode;
-                p.settings.resetKeyCode = M.resetKeyCode;
-                p.settings.displayOption = M.displayOption;
-                p.settings.allowMouseWheel = Boolean(M.allowMouseWheel);
-                p.settings.rememberSpeed = Boolean(M.rememberSpeed);
-                q = setInterval(r, 10);
-            });
+(() => {
+  const DEFAULT_SETTINGS = {
+    speed: 1.0,
+    speedStep: 0.25,
+    slowerKeyCode: '109,189',
+    fasterKeyCode: '107,187',
+    resetKeyCode: '106',
+    displayOption: 'FadeInFadeOut',
+    allowMouseWheel: true,
+    rememberSpeed: false
+  };
 
-            function r() {
-                if (document.readyState === 'complete') {
-                    clearInterval(q);
-                    p.videoController = function (R) {
-                        this.video = R;
-                        if (!p.settings.rememberSpeed) {
-                            p.settings.speed = 1.0;
-                        }
-                        this.initializeControls();
-                        R.addEventListener('play', function (V) {
-                            R.playbackRate = p.settings.speed;
-                        });
-                        R.addEventListener('ratechange', function (V) {
-                            if (R.readyState === 0) {
-                                return;
-                            }
-                            var W = this.getSpeed();
-                            this.speedIndicator.textContent = W;
-                            p.settings.speed = W;
-                            chrome.storage.sync.set({
-                                'speed': W
-                            });
-                        }.bind(this));
-                        R.playbackRate = p.settings.speed;
-                    };
-                    p.videoController.prototype.getSpeed = function () {
-                        return parseFloat(this.video.playbackRate).toFixed(2);
-                    };
-                    p.videoController.prototype.remove = function () {
-                        this.parentElement.removeChild(this);
-                    };
-                    p.videoController.prototype.initializeControls = function () {
-                        var R = document.createDocumentFragment();
-                        var S = document.createElement('div');
-                        S.setAttribute("id", "avscPlayBackPanel");
-                        S.className = "avscPlayBackPanel";
-                        var T = document.createElement('button');
-                        T.setAttribute("id", "PlayBackRate");
-                        T.className = "avscBtn";
-                        var U = document.createElement('button');
-                        U.setAttribute("id", "SpeedDown");
-                        U.className = "avscBtn avscBtn-left";
-                        U.textContent = '<<';
-                        var NR = document.createElement('button');
-                        NR.setAttribute("id", "SpeedUp");
-                        NR.className = "avscBtn avscBtn-right";
-                        NR.textContent = '>>';
-                        if (p.settings.displayOption == 'None') {
-                            S.style.display = "none";
-                        } else if (p.settings.displayOption == 'Always') {
-                            S.style.display = "inline";
-                        } else if (p.settings.displayOption == 'Simple') {
-                            S.style.display = "inline";
-                            NR.style.display = "none";
-                            U.style.display = "none";
-                            T.style.border = "none";
-                            T.style.background = "transparent";
-                        } else if (p.settings.displayOption == 'FadeInFadeOut') {
-                            S.style.display = "none";
-                        } else {
-                            S.style.display = "inline";
-                        }
-                        S.appendChild(NR);
-                        S.appendChild(T);
-                        S.appendChild(U);
-                        R.appendChild(S);
-                        this.video.parentElement.parentElement.insertBefore(R, this.video.parentElement);
-                        this.video.parentElement.parentElement.addEventListener("mousemove", M);
-                        this.video.parentElement.parentElement.addEventListener("mouseout", N);
-                        var NS = parseFloat(p.settings.speed).toFixed(2);
-                        T.textContent = NS;
-                        this.speedIndicator = T;
-                        S.addEventListener('click', function (V) {
-                            if (V.target === U) {
-                                P('slower');
-                            } else if (V.target === NR) {
-                                P('faster');
-                            } else if (V.target === T) {
-                                P('reset');
-                            }
-                            V.preventDefault();
-                            V.stopPropagation();
-                        }, true);
-                        S.addEventListener('dblclick', function (V) {
-                            V.preventDefault();
-                            V.stopPropagation();
-                        }, true);
-                    };
+  let settings = { ...DEFAULT_SETTINGS };
+  const controllers = new WeakMap();
 
-                    function M() {
-                        var T = document.getElementById('avscPlayBackPanel');
-                        var U = T.style.display;
-                        if (U === "none") {
-                            T.style.display = "inline";
-                            setTimeout(function () {
-                                T.style.display = U;
-                            }, 1000);
-                        }
-//                var R = document.getElementById('avscPlayBackPanel');
-//                if (p.settings.displayOption == 'FadeInFadeOut') {
-//                    R.style.display = "inline";
-//                }
-                    };
+  function matchesKeyCode(keyCodes, keyCode) {
+    return keyCodes.split(',').some(code => parseInt(code, 10) === keyCode);
+  }
 
-                    function N() {
-                        var R = document.getElementById('avscPlayBackPanel');
-                        if (p.settings.displayOption == 'FadeInFadeOut' && R.className != "avscPlayBackPanelFullScreen") {
-                            R.style.display = "none";
-                        }
-                    };
+  function setVideoSpeed(video, speed) {
+    video.playbackRate = speed;
+  }
 
-                    function O(R, S) {
-                        R.playbackRate = S;
-                    };
+  function adjustSpeed(action) {
+    const videos = document.getElementsByTagName('video');
+    for (const video of videos) {
+      if (video.classList.contains('vc-cancelled')) continue;
 
-                    function P(R) {
-                        var S = document.getElementsByTagName('video');
-                        S.forEach = Array.prototype.forEach;
-                        S.forEach(function (V) {
-                            if (!V.classList.contains('vc-cancelled')) {
-                                if (R === 'faster') {
-                                    var W = Math.min(V.playbackRate + p.settings.speedStep, 16);
-                                    O(V, W);
-                                } else if (R === 'slower') {
-                                    var W = Math.max(V.playbackRate - p.settings.speedStep, 0);
-                                    O(V, W);
-                                } else if (R === 'reset') {
-                                    var W = Math.max(1, 0);
-                                    O(V, W);
-                                }
-                            }
-                        });
-
-                        // display playback panel for 2000ms after user adjusts speed via keyboard
-                        var T = document.getElementById('avscPlayBackPanel');
-                        var U = T.style.display;
-                        if (U === "none") {
-                            T.style.display = "inline";
-                            setTimeout(function () {
-                                T.style.display = U;
-                            }, 2000);
-                        }
-                    };
-                    document.addEventListener('keydown', function (R) {
-                        var S = R.which;
-                        if (document.activeElement.nodeName === 'INPUT' && document.activeElement.getAttribute('type') === 'text') {
-                            return false;
-                        }
-                        if (p.settings.fasterKeyCode.match(new RegExp("(?:^|,)" + S + "(?:,|$)"))) {
-                            P('faster');
-                        } else if (p.settings.slowerKeyCode.match(new RegExp("(?:^|,)" + S + "(?:,|$)"))) {
-                            P('slower');
-                        } else if (p.settings.resetKeyCode.match(new RegExp("(?:^|,)" + S + "(?:,|$)"))) {
-                            P('reset');
-                        }
-                        return false;
-                    }, true);
-                    document.addEventListener('DOMNodeInserted', function (R) {
-                        var S = R.target || null;
-                        if (S && S.nodeName === 'VIDEO') {
-                            new p.videoController(S);
-                        }
-                    });
-                    if (p.settings.allowMouseWheel) {
-                        document.addEventListener('mousewheel', function (R) {
-                            if (R.shiftKey) {
-                                if ('wheelDelta' in R) {
-                                    rolled = R.wheelDelta;
-                                    if (rolled > 0) P('faster');
-                                    else if (rolled < 0) P('slower');
-                                }
-                            }
-                        }, false);
-                    }
-                    document.addEventListener("webkitfullscreenchange", function () {
-                        var R = document.getElementById('avscPlayBackPanel');
-                        if (document.webkitIsFullScreen == true) {
-                            R.className = "avscPlayBackPanelFullScreen";
-                        } else {
-                            R.className = "avscPlayBackPanel";
-                        }
-                    }, false);
-                    var Q = document.getElementsByTagName('video');
-                    Q.forEach = Array.prototype.forEach;
-                    Q.forEach(function (R) {
-                        var S = new p.videoController(R);
-                    });
-                }
-            }
-        }
+      let newSpeed;
+      if (action === 'faster') {
+        newSpeed = Math.min(video.playbackRate + settings.speedStep, 16);
+      } else if (action === 'slower') {
+        newSpeed = Math.max(video.playbackRate - settings.speedStep, 0.05);
+      } else if (action === 'reset') {
+        newSpeed = 1.0;
+      }
+      if (newSpeed !== undefined) {
+        setVideoSpeed(video, newSpeed);
+      }
     }
 
-    ping();
-});
-chrome.extension.sendRequest("show_page_action");
+    // Briefly show panel when speed changes
+    const panel = document.getElementById('avscPlayBackPanel');
+    if (panel && panel.style.display === 'none') {
+      panel.style.display = 'inline';
+      setTimeout(() => { panel.style.display = 'none'; }, 2000);
+    }
+  }
+
+  function createController(video) {
+    if (controllers.has(video)) return;
+
+    if (!settings.rememberSpeed) {
+      settings.speed = 1.0;
+    }
+
+    const panel = document.createElement('div');
+    panel.id = 'avscPlayBackPanel';
+    panel.className = 'avscPlayBackPanel';
+
+    const speedBtn = document.createElement('button');
+    speedBtn.id = 'PlayBackRate';
+    speedBtn.className = 'avscBtn';
+    speedBtn.textContent = parseFloat(settings.speed).toFixed(2);
+
+    const slowBtn = document.createElement('button');
+    slowBtn.id = 'SpeedDown';
+    slowBtn.className = 'avscBtn avscBtn-left';
+    slowBtn.textContent = '<<';
+
+    const fastBtn = document.createElement('button');
+    fastBtn.id = 'SpeedUp';
+    fastBtn.className = 'avscBtn avscBtn-right';
+    fastBtn.textContent = '>>';
+
+    // Apply display option
+    switch (settings.displayOption) {
+      case 'None':
+        panel.style.display = 'none';
+        break;
+      case 'Always':
+        panel.style.display = 'inline';
+        break;
+      case 'Simple':
+        panel.style.display = 'inline';
+        fastBtn.style.display = 'none';
+        slowBtn.style.display = 'none';
+        speedBtn.style.border = 'none';
+        speedBtn.style.background = 'transparent';
+        break;
+      case 'FadeInFadeOut':
+        panel.style.display = 'none';
+        break;
+      default:
+        panel.style.display = 'inline';
+    }
+
+    panel.appendChild(fastBtn);
+    panel.appendChild(speedBtn);
+    panel.appendChild(slowBtn);
+
+    // Insert panel near the video
+    const parent = video.parentElement;
+    if (parent) {
+      parent.insertBefore(panel, video);
+    }
+
+    // Hover behavior for FadeInFadeOut
+    if (parent) {
+      parent.addEventListener('mousemove', () => {
+        if (panel.style.display === 'none') {
+          panel.style.display = 'inline';
+          setTimeout(() => {
+            if (settings.displayOption === 'FadeInFadeOut') {
+              panel.style.display = 'none';
+            }
+          }, 1000);
+        }
+      });
+
+      parent.addEventListener('mouseleave', () => {
+        if (settings.displayOption === 'FadeInFadeOut' && panel.className !== 'avscPlayBackPanelFullScreen') {
+          panel.style.display = 'none';
+        }
+      });
+    }
+
+    // Panel button clicks
+    panel.addEventListener('click', (e) => {
+      if (e.target === slowBtn) adjustSpeed('slower');
+      else if (e.target === fastBtn) adjustSpeed('faster');
+      else if (e.target === speedBtn) adjustSpeed('reset');
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
+
+    panel.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
+
+    // Track rate changes
+    video.addEventListener('play', () => {
+      video.playbackRate = settings.speed;
+    });
+
+    video.addEventListener('ratechange', () => {
+      if (video.readyState === 0) return;
+      const speed = parseFloat(video.playbackRate).toFixed(2);
+      speedBtn.textContent = speed;
+      settings.speed = parseFloat(speed);
+      chrome.storage.sync.set({ speed });
+    });
+
+    video.playbackRate = settings.speed;
+    controllers.set(video, { panel, speedBtn });
+  }
+
+  function init() {
+    chrome.storage.sync.get(DEFAULT_SETTINGS, (stored) => {
+      settings.speed = Number(stored.speed);
+      settings.speedStep = Number(stored.speedStep);
+      settings.slowerKeyCode = stored.slowerKeyCode;
+      settings.fasterKeyCode = stored.fasterKeyCode;
+      settings.resetKeyCode = stored.resetKeyCode;
+      settings.displayOption = stored.displayOption;
+      settings.allowMouseWheel = Boolean(stored.allowMouseWheel);
+      settings.rememberSpeed = Boolean(stored.rememberSpeed);
+
+      // Attach controllers to existing videos
+      for (const video of document.getElementsByTagName('video')) {
+        createController(video);
+      }
+
+      // Watch for dynamically added videos
+      const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          for (const node of mutation.addedNodes) {
+            if (node.nodeName === 'VIDEO') {
+              createController(node);
+            }
+            // Check children of added nodes
+            if (node.querySelectorAll) {
+              for (const video of node.querySelectorAll('video')) {
+                createController(video);
+              }
+            }
+          }
+        }
+      });
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+
+      // Keyboard controls
+      document.addEventListener('keydown', (e) => {
+        const active = document.activeElement;
+        if (active && (active.nodeName === 'INPUT' || active.nodeName === 'TEXTAREA' || active.isContentEditable)) {
+          return;
+        }
+
+        const keyCode = e.which || e.keyCode;
+        if (matchesKeyCode(settings.fasterKeyCode, keyCode)) {
+          adjustSpeed('faster');
+        } else if (matchesKeyCode(settings.slowerKeyCode, keyCode)) {
+          adjustSpeed('slower');
+        } else if (matchesKeyCode(settings.resetKeyCode, keyCode)) {
+          adjustSpeed('reset');
+        }
+      }, true);
+
+      // Mouse wheel controls
+      if (settings.allowMouseWheel) {
+        document.addEventListener('wheel', (e) => {
+          if (e.shiftKey) {
+            if (e.deltaY < 0) adjustSpeed('faster');
+            else if (e.deltaY > 0) adjustSpeed('slower');
+          }
+        }, { passive: true });
+      }
+
+      // Fullscreen change
+      document.addEventListener('fullscreenchange', () => {
+        const panel = document.getElementById('avscPlayBackPanel');
+        if (!panel) return;
+        if (document.fullscreenElement) {
+          panel.className = 'avscPlayBackPanelFullScreen';
+        } else {
+          panel.className = 'avscPlayBackPanel';
+        }
+      });
+    });
+  }
+
+  // Start when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
